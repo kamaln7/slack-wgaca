@@ -29,19 +29,19 @@ r.connect config.rethinkdb, (err, conn) ->
     for param in params
       continue if not req.body[param]
 
-    regex = /^(.+)(\+\+|\-\-)( for (.*))?$/
+    regex = /^(.+?)([\+]{2,}|[\-]{2,})( for (.*))?$/
     from = req.body.user_name.toLowerCase()
     if regex.test req.body.text
       params = req.body.text.match regex
       to = params[1].toLowerCase()
-      type = params[2]
+      points = Math.min(params[2].length - 1, 3) * (if params[2][0] is '+' then 1 else -1)
       reason = if params[4] isnt undefined then params[4] else null
 
       r.table('karma').insert({
         from: from
         to: to
         reason: reason
-        type: type
+        points: points
       }).run rdbConn, (err, result) ->
         if err
           slack.send {
@@ -50,7 +50,7 @@ r.connect config.rethinkdb, (err, conn) ->
             username: 'WGACA'
           }
         else
-          r.table('karma').filter(r.row('to').eq(to)).filter(r.row('type').eq('++')).count().run rdbConn, (err, increaseCount) ->
+          r.table('karma').filter(r.row('to').eq(to)).sum('points').run rdbConn, (err, pointsResult) ->
             if err
               slack.send {
                 text: "Error: #{err}"
@@ -58,23 +58,15 @@ r.connect config.rethinkdb, (err, conn) ->
                 username: 'WGACA'
               }
             else
-              r.table('karma').filter(r.row('to').eq(to)).filter(r.row('type').eq('--')).count().run rdbConn, (err, decreaseCount) ->
-                if err
-                  slack.send {
-                      text: "Error: #{err}"
-                      channel: "##{req.body.channel_name}"
-                      username: 'WGACA'
-                    }
-                else
-                  points = increaseCount - decreaseCount
-                  text = "#{to} == #{points}"
-                  if reason
-                    text += " for #{reason}"
-                  slack.send {
-                    text: text
-                    channel: "##{req.body.channel_name}"
-                    username: 'WGACA'
-                  }
+              pointsText = (if points > 0 then '+' else '-') + Math.abs(points)
+              text = "#{to} == #{pointsResult} (#{pointsText})"
+              if reason
+                text += " for #{reason}"
+              slack.send {
+                text: text
+                channel: "##{req.body.channel_name}"
+                username: 'WGACA'
+              }
   
   app.use router
   
