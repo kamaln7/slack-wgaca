@@ -33,7 +33,7 @@ r.connect config.rethinkdb, (err, conn) ->
     from = req.body.user_name.toLowerCase()
     if regex.test req.body.text
       params = req.body.text.match regex
-      to = params[1].toLowerCase()
+      to = params[1].toLowerCase().replace(/^@/, '')
       points = Math.min(params[2].length - 1, 3) * (if params[2][0] is '+' then 1 else -1)
       reason = if params[4] isnt undefined then params[4] else null
 
@@ -67,6 +67,24 @@ r.connect config.rethinkdb, (err, conn) ->
                 channel: "##{req.body.channel_name}"
                 username: 'WGACA'
               }
+    if req.body.text.toLowerCase() is 'karma highscores'
+      r.table('karma').group('to').sum('points').ungroup().filter(r.row('reduction').ne(0)).orderBy(r.desc('reduction')).limit(10).run rdbConn, (err, highscores) ->
+        if err
+          slack.send {
+            text: "Error: #{err}"
+            channel: "##{req.body.channel_name}"
+            username: 'WGACA'
+          }
+        else
+          highscoresText = 'Top 10\n'
+          for highscore in highscores
+            highscoresText += "#{highscore.group} == #{highscore.reduction}\n"
+
+          slack.send {
+            text: highscoresText
+            channel: "##{req.body.channel_name}"
+            username: 'WGACA'
+          }
   
   app.use router
   
