@@ -85,6 +85,7 @@ r.connect config.rethinkdb, (err, conn) ->
             channel: "##{req.body.channel_name}"
             username: 'WGACA'
           }
+  res.send 200
   
   app.use router
   
