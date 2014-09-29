@@ -8,5 +8,5 @@ module.exports =
 		host: 'localhost'
 		port: 4000
 	slack:
-		domain: 'digitalocean.com'
+		domain: ''
 		token: ''
