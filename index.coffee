@@ -61,7 +61,7 @@ r.connect config.rethinkdb, (err, conn) ->
               pointsText = (if points > 0 then '+' else '-') + Math.abs(points)
               text = "#{to} == #{pointsResult} (#{pointsText})"
               if reason
-                text += " for #{reason}"
+                pointsText += " for #{reason}"
               slack.send {
                 text: text
                 channel: "##{req.body.channel_name}"
