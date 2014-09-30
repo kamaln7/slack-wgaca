@@ -15,15 +15,15 @@ r.connect config.rethinkdb, (err, conn) ->
 
   Slack = require 'node-slack'
   slack = new Slack(config.slack.domain, config.slack.token)
-  
+
   express = require 'express'
   app = express()
   bodyParser = require 'body-parser'
   app.use bodyParser.urlencoded extended: true
   app.use bodyParser.json()
-  
+
   router = express.Router()
-  
+
   router.post '/hubot/slack-webhook', (req, res) ->
     params = ['channel_name', 'user_name', 'text']
     for param in params
@@ -85,9 +85,10 @@ r.connect config.rethinkdb, (err, conn) ->
             channel: "##{req.body.channel_name}"
             username: 'WGACA'
           }
-  res.send 200
-  
+  res.status 200
+  res.end()
+
   app.use router
-  
+
   app.listen config.express.port, config.express.host, ->
     console.log "Express listening on #{config.express.host}:#{config.express.port}"
