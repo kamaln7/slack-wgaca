@@ -29,7 +29,7 @@ r.connect config.rethinkdb, (err, conn) ->
     for param in params
       continue if not req.body[param]
 
-    regex = /^([^\s]+?)([\+]{2,}|[\-]{2,})( for (.*))?$/
+    regex = /^([^\s]+?)([\+]{2,}|[\-]{2,})((?: for)? (.*))?$/
     from = req.body.user_name.toLowerCase()
     if regex.test req.body.text
       params = req.body.text.match regex
