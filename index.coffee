@@ -47,7 +47,7 @@ r.connect config.rethinkdb, (err, conn) ->
           slack.send {
             text: "Error: #{err}"
             channel: "##{req.body.channel_name}"
-            username: 'WGACA'
+            username: 'wgaca'
           }
         else
           r.table('karma').filter(r.row('to').eq(to)).sum('points').run rdbConn, (err, pointsResult) ->
@@ -55,7 +55,7 @@ r.connect config.rethinkdb, (err, conn) ->
               slack.send {
                 text: "Error: #{err}"
                 channel: "##{req.body.channel_name}"
-                username: 'WGACA'
+                username: 'wgaca'
               }
             else
               pointsText = (if points > 0 then '+' else '-') + Math.abs(points)
@@ -65,25 +65,27 @@ r.connect config.rethinkdb, (err, conn) ->
               slack.send {
                 text: text
                 channel: "##{req.body.channel_name}"
-                username: 'WGACA'
+                username: 'wgaca'
               }
-    if req.body.text.toLowerCase() is 'karma highscores'
-      r.table('karma').group('to').sum('points').ungroup().filter(r.row('reduction').ne(0)).orderBy(r.desc('reduction')).limit(10).run rdbConn, (err, highscores) ->
+    if /^karma highscores ?([0-9]+)?$/.test req.body.text
+      rMatch = req.body.text.match /^karma highscores ?([0-9]+)?$/
+      limit = parseInt if rMatch[1] then rMatch[1] else 10
+      r.table('karma').group('to').sum('points').ungroup().filter(r.row('reduction').ne(0)).orderBy(r.desc('reduction')).limit(limit).run rdbConn, (err, highscores) ->
         if err
           slack.send {
             text: "Error: #{err}"
             channel: "##{req.body.channel_name}"
-            username: 'WGACA'
+            username: 'wgaca'
           }
         else
-          highscoresText = 'Top 10\n'
+          highscoresText = "Top #{limit}\n"
           for highscore in highscores
             highscoresText += "#{highscore.group} == #{highscore.reduction}\n"
 
           slack.send {
             text: highscoresText
             channel: "##{req.body.channel_name}"
-            username: 'WGACA'
+            username: 'wgaca'
           }
     res.status 200
     res.end()
