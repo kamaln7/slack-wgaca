@@ -37,6 +37,10 @@ r.connect config.rethinkdb, (err, conn) ->
       points = Math.min(params[2].length - 1, 3) * (if params[2][0] is '+' then 1 else -1)
       reason = if params[4] isnt undefined then params[4] else null
 
+      alphabet = /[a-z]+/i
+      # return if "to" does not contain any alphabetic characters
+      return unless alphabet.test to
+
       r.table('karma').insert({
         from: from
         to: to
