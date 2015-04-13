@@ -25,6 +25,9 @@ r.connect config.rethinkdb, (err, conn) ->
   router = express.Router()
 
   router.post '/hubot/slack-webhook', (req, res) ->
+    body = Object.keys req.body
+    req.body = JSON.parse body[0]
+
     params = ['channel_name', 'user_name', 'text']
     for param in params
       continue if not req.body[param]
